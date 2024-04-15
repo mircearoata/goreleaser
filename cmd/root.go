@@ -98,6 +98,7 @@ Check out our website for more information, examples and documentation: https://
 		newDocsCmd().cmd,
 		newManCmd().cmd,
 		newSchemaCmd().cmd,
+		newContinueCmd().cmd,
 	)
 	root.cmd = cmd
 	return root

@@ -21,6 +21,7 @@ import (
 	"github.com/goreleaser/goreleaser/internal/pipe/git"
 	"github.com/goreleaser/goreleaser/internal/pipe/gomod"
 	"github.com/goreleaser/goreleaser/internal/pipe/krew"
+	"github.com/goreleaser/goreleaser/internal/pipe/merge"
 	"github.com/goreleaser/goreleaser/internal/pipe/metadata"
 	"github.com/goreleaser/goreleaser/internal/pipe/nfpm"
 	"github.com/goreleaser/goreleaser/internal/pipe/nix"
@@ -35,6 +36,7 @@ import (
 	"github.com/goreleaser/goreleaser/internal/pipe/snapcraft"
 	"github.com/goreleaser/goreleaser/internal/pipe/snapshot"
 	"github.com/goreleaser/goreleaser/internal/pipe/sourcearchive"
+	"github.com/goreleaser/goreleaser/internal/pipe/split"
 	"github.com/goreleaser/goreleaser/internal/pipe/universalbinary"
 	"github.com/goreleaser/goreleaser/internal/pipe/upx"
 	"github.com/goreleaser/goreleaser/internal/pipe/winget"
@@ -49,9 +51,7 @@ type Piper interface {
 	Run(ctx *context.Context) error
 }
 
-// BuildPipeline contains all build-related pipe implementations in order.
-// nolint:gochecknoglobals
-var BuildPipeline = []Piper{
+var SetupPipeline = []Piper{
 	// load and validate environment variables
 	env.Pipe{},
 	// get and validate git repo state
@@ -60,16 +60,23 @@ var BuildPipeline = []Piper{
 	semver.Pipe{},
 	// load default configs
 	defaults.Pipe{},
+	// setup things for split builds/releases
+	split.Pipe{},
 	// setup things for partial builds/releases
 	partial.Pipe{},
 	// snapshot version handling
 	snapshot.Pipe{},
+	// setup metadata options
+	metadata.Pipe{},
+}
+
+// BuildPipeline contains all build-related pipe implementations in order.
+// nolint:gochecknoglobals
+var BuildPipeline = []Piper{
 	// run global hooks before build
 	before.Pipe{},
 	// ensure ./dist is clean
 	dist.Pipe{},
-	// setup metadata options
-	metadata.Pipe{},
 	// creates a metadta.json files in the dist directory
 	metadata.MetaPipe{},
 	// setup gomod-related stuff
@@ -88,20 +95,11 @@ var BuildPipeline = []Piper{
 	universalbinary.Pipe{},
 	// upx
 	upx.Pipe{},
+	// modify the split artifacts paths
+	split.ArtifactsPipe{},
 }
 
-// BuildCmdPipeline is the pipeline run by goreleaser build.
-// nolint:gochecknoglobals
-var BuildCmdPipeline = append(
-	BuildPipeline,
-	reportsizes.Pipe{},
-	metadata.ArtifactsPipe{},
-)
-
-// Pipeline contains all pipe implementations in order.
-// nolint: gochecknoglobals
-var Pipeline = append(
-	BuildPipeline,
+var ReleasePipeline = []Piper{
 	// builds the release changelog
 	changelog.Pipe{},
 	// archive in tar.gz, zip or binary (which does no archiving at all)
@@ -142,4 +140,40 @@ var Pipeline = append(
 	metadata.ArtifactsPipe{},
 	// announce releases
 	announce.Pipe{},
+}
+
+// BuildCmdPipeline is the pipeline run by goreleaser build.
+// nolint:gochecknoglobals
+var BuildCmdPipeline = append(
+	SetupPipeline,
+	append(
+		BuildPipeline,
+		reportsizes.Pipe{},
+		metadata.ArtifactsPipe{},
+	)...,
+)
+
+// ContinueCmdPipeline is the pipeline run by goreleaser build.
+// nolint:gochecknoglobals
+var ContinueCmdPipeline = append(
+	SetupPipeline,
+	append(
+		[]Piper{
+			// merges the artifacts of a split release
+			merge.Pipe{},
+			// creates a metadta.json files in the dist directory
+			metadata.MetaPipe{},
+		},
+		ReleasePipeline...,
+	)...,
+)
+
+// Pipeline contains all pipe implementations in order.
+// nolint: gochecknoglobals
+var Pipeline = append(
+	SetupPipeline,
+	append(
+		BuildPipeline,
+		ReleasePipeline...,
+	)...,
 )
