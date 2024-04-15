@@ -120,6 +120,14 @@ func Partial(ctx *context.Context) {
 	ctx.Partial = true
 }
 
+func Split(ctx *context.Context) {
+	ctx.Split = true
+}
+
+func Merge(ctx *context.Context) {
+	ctx.Merge = true
+}
+
 func NewWithCfg(c config.Project, opts ...Opt) *context.Context {
 	ctx := context.New(c)
 	for _, opt := range opts {

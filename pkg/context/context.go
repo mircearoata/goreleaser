@@ -75,6 +75,7 @@ const (
 	ActionNone Action = iota
 	ActionBuild
 	ActionRelease
+	ActionContinue
 )
 
 // Context carries along some data through the pipes.
@@ -99,11 +100,14 @@ type Context struct {
 	Version           string
 	ModulePath        string
 	PartialTarget     string
+	SplitTarget       string
 	Snapshot          bool
 	FailFast          bool
 	Partial           bool
 	SkipTokenCheck    bool
 	Clean             bool
+	Split             bool
+	Merge             bool
 	PreRelease        bool
 	Deprecated        bool
 	Parallelism       int

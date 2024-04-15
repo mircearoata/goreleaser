@@ -9,11 +9,18 @@ import (
 )
 
 func filter(ctx *context.Context, targets []string) []string {
-	if !ctx.Partial {
+	if !ctx.Partial && !ctx.Split {
 		return targets
 	}
 
-	target := ctx.PartialTarget
+	var target string
+
+	if ctx.Split {
+		target = ctx.SplitTarget
+	} else {
+		target = ctx.PartialTarget
+	}
+
 	log.WithField("match", fmt.Sprintf("target=%s", target)).Infof("partial build")
 
 	var result []string
