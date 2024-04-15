@@ -241,6 +241,9 @@ func setupReleaseContext(ctx *context.Context, options releaseOpts) error {
 		deprecate.NoticeCustom(ctx, "-rm-dist", "--rm-dist was deprecated in favor of --clean, check {{ .URL }} for more details")
 	}
 
+	if ctx.Split {
+		skips.Set(ctx, skips.Publish, skips.Announce)
+	}
 	if ctx.Snapshot {
 		skips.Set(ctx, skips.Publish, skips.Announce, skips.Validate)
 	}
