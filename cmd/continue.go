@@ -34,7 +34,6 @@ type continueOpts struct {
 	releaseFooterTmpl string
 	autoSnapshot      bool
 	snapshot          bool
-	draft             bool
 	failFast          bool
 	merge             bool
 	parallelism       int
@@ -79,7 +78,6 @@ func newContinueCmd() *continueCmd {
 	_ = cmd.MarkFlagFilename("release-footer-tmpl", "md", "mkd", "markdown")
 	cmd.Flags().BoolVar(&root.opts.autoSnapshot, "auto-snapshot", false, "Automatically sets --snapshot if the repository is dirty")
 	cmd.Flags().BoolVar(&root.opts.snapshot, "snapshot", false, "Generate an unversioned snapshot release, skipping all validations and without publishing any artifacts (implies --skip=announce,publish,validate)")
-	cmd.Flags().BoolVar(&root.opts.draft, "draft", false, "Whether to set the release to draft. Overrides release.draft in the configuration file")
 	cmd.Flags().BoolVar(&root.opts.failFast, "fail-fast", false, "Whether to abort the release publishing on the first error")
 	cmd.Flags().BoolVar(&root.opts.merge, "merge", false, "Merge a release that has been split into multiple steps")
 	cmd.Flags().IntVarP(&root.opts.parallelism, "parallelism", "p", 0, "Amount tasks to run concurrently (default: number of CPUs)")
@@ -147,8 +145,6 @@ func setupContinueContext(ctx *context.Context, options continueOpts) error {
 		log.Info("git repository is dirty and --auto-snapshot is set, implying --snapshot")
 		ctx.Snapshot = true
 	}
-
-	ctx.Config.Release.Draft = options.draft
 
 	if err := skips.SetRelease(ctx, options.skips...); err != nil {
 		return err
