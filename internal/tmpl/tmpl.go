@@ -62,6 +62,7 @@ const (
 	modulePath      = "ModulePath"
 	releaseNotes    = "ReleaseNotes"
 	runtimeK        = "Runtime"
+	artifacts       = "Artifacts"
 
 	// artifact-only keys.
 	osKey        = "Os"
@@ -79,6 +80,15 @@ const (
 	ext    = "Ext"
 	path   = "Path"
 	target = "Target"
+
+	// artifacts keys.
+	goos    = "Goos"
+	goarch  = "Goarch"
+	goarm   = "Goarm"
+	gomips  = "Gomips"
+	goamd64 = "Goamd64"
+	typeKey = "Type"
+	extra   = "Extra"
 )
 
 // New Template.
@@ -88,6 +98,21 @@ func New(ctx *context.Context) *Template {
 	treeState := "clean"
 	if ctx.Git.Dirty {
 		treeState = "dirty"
+	}
+
+	var artifactList []map[string]interface{}
+	for _, a := range ctx.Artifacts.List() {
+		artifactList = append(artifactList, map[string]interface{}{
+			name:    a.Name,
+			path:    a.Path,
+			osKey:   a.Goos,
+			arch:    a.Goarch,
+			arm:     a.Goarm,
+			mips:    a.Gomips,
+			amd64:   a.Goamd64,
+			typeKey: a.Type,
+			extra:   a.Extra,
+		})
 	}
 
 	fields := map[string]interface{}{}
@@ -126,6 +151,7 @@ func New(ctx *context.Context) *Template {
 		tagContents:     ctx.Git.TagContents,
 		tagBody:         ctx.Git.TagBody,
 		runtimeK:        ctx.Runtime,
+		artifacts:       artifactList,
 	} {
 		fields[k] = v
 	}
