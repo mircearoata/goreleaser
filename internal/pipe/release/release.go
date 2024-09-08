@@ -156,6 +156,22 @@ func doPublish(ctx *context.Context, client client.Client) error {
 		})
 	}
 
+	extraTemplateFiles, err := extrafiles.RunTemplate(ctx, ctx.Config.Release.TemplatedExtraFiles)
+	if err != nil {
+		return err
+	}
+
+	for name, path := range extraTemplateFiles {
+		if _, err := os.Stat(path); errors.Is(err, fs.ErrNotExist) {
+			return fmt.Errorf("failed to upload %s: %w", name, err)
+		}
+		ctx.Artifacts.Add(&artifact.Artifact{
+			Name: name,
+			Path: path,
+			Type: artifact.UploadableFile,
+		})
+	}
+
 	typeFilters := []artifact.Filter{
 		artifact.ByType(artifact.UploadableArchive),
 		artifact.ByType(artifact.UploadableBinary),

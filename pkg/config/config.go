@@ -740,6 +740,8 @@ type Release struct {
 	ReleaseNotesMode         ReleaseNotesMode `yaml:"mode,omitempty" json:"mode,omitempty" jsonschema:"enum=keep-existing,enum=append,enum=prepend,enum=replace,default=keep-existing"`
 	ReplaceExistingArtifacts bool             `yaml:"replace_existing_artifacts,omitempty" json:"replace_existing_artifacts,omitempty"`
 	IncludeMeta              bool             `yaml:"include_meta,omitempty" json:"include_meta,omitempty"`
+
+	TemplatedExtraFiles []TemplatedExtraFile `yaml:"templated_extra_files,omitempty" json:"template_extra_files,omitempty"`
 }
 
 // Milestone config used for VCS milestone.
@@ -754,6 +756,12 @@ type Milestone struct {
 type ExtraFile struct {
 	Glob         string `yaml:"glob,omitempty" json:"glob,omitempty"`
 	NameTemplate string `yaml:"name_template,omitempty" json:"name_template,omitempty"`
+}
+
+// TemplatedExtraFile on a release.
+type TemplatedExtraFile struct {
+	Src string `yaml:"src,omitempty" json:"src,omitempty"`
+	Dst string `yaml:"dst,omitempty" json:"dst,omitempty"`
 }
 
 // NFPM config.
